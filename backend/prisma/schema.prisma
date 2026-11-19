@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum RSVPStatus {
+  PENDING
+  ATTENDING
+  NOT_ATTENDING
+}
+
+model Guest {
+  id        String   @id @default(uuid())
+  fullName  String
+  email     String?  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  invitation Invitation?
+  rsvp       RSVP?
+  profile    GuestProfile?
+
+  sessions GuestSession[]
+}
+
+model Invitation {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique
+  message   String?
+  guestId   String    @unique
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
+
+  guest Guest @relation(fields: [guestId], references: [id], onDelete: Cascade)
+}
+
+model RSVP {
+  id        String     @id @default(uuid())
+  status    RSVPStatus @default(PENDING)
+  updatedAt DateTime   @updatedAt
+  guestId   String     @unique
+
+  guest Guest @relation(fields: [guestId], references: [id], onDelete: Cascade)
+}
+
+model GuestProfile {
+  id        String   @id @default(uuid())
+  nickname  String
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  guestId   String   @unique
+
+  guest Guest @relation(fields: [guestId], references: [id], onDelete: Cascade)
+}
+
+model GuestSession {
+  id               String   @id @default(uuid()) @db.Uuid
+  sessionTokenHash String   @unique
+  guestId          String
+  expiresAt        DateTime
+  createdAt        DateTime @default(now())
+
+  guest Guest @relation(fields: [guestId], references: [id], onDelete: Cascade)
+
+  @@index([guestId])
+}
+
+model Admin {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  sessions AdminSession[]
+}
+
+model AdminSession {
+  id               String   @id @default(uuid()) @db.Uuid
+  sessionTokenHash String   @unique
+  adminId          String
+  expiresAt        DateTime
+  createdAt        DateTime @default(now())
+
+  admin Admin @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@index([expiresAt])
+}
+
+model WorldSettings {
+  id             String   @id @default("default")
+  eventTitle     String   @default("Graduation World")
+  eventDate      DateTime?
+  eventDescription String?
+  welcomeMessage String?
+  worldName      String   @default("Graduation World")
+  musicUrl       String?
+  environment    String   @default("night")
+  announcement   String?
+  updatedAt      DateTime @updatedAt
+}

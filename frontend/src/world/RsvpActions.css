@@ -1,0 +1,233 @@
+.rsvp-section {
+    width: 100%;
+    text-align: center;
+    font-family: inherit;
+}
+
+.rsvp-heading {
+    margin: 0 0 4px;
+    color: #fff8df;
+    font-size: clamp(8px, 2.4vh, 10px);
+    font-weight: 700;
+    line-height: 1.1;
+    text-shadow: 0 1px 3px #142c50;
+}
+
+.rsvp-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+}
+
+.rsvp-button {
+    position: relative;
+    display: flex;
+    flex: 1 1 0;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    height: 24px;
+    border: 1px solid;
+    border-radius: 30px;
+    padding: 2px 4px;
+    font: inherit;
+    font-size: clamp(8px, 2.4vh, 10px);
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: transform 0.25s ease, box-shadow 0.3s ease, background 0.3s ease;
+}
+
+.rsvp-button:hover:not(:disabled) {
+    transform: translateY(-2px) scale(1.02);
+}
+
+.rsvp-button:active:not(:disabled) {
+    transform: scale(0.96);
+}
+
+.rsvp-button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.rsvp-button-icon {
+    margin-right: 3px;
+    font-size: 12px;
+}
+
+.attend {
+    color: #80500a;
+    border-color: #d9a63d;
+    background: linear-gradient(135deg, #fff9e8, #f5d98e);
+}
+
+.attend.selected {
+    color: #fff;
+    background: linear-gradient(135deg, #f6c65d, #bd811b);
+    box-shadow: 0 0 8px #eab94c, 0 0 16px #eab94c88;
+    animation: rsvp-pulse-gold 1.5s infinite;
+}
+
+.decline {
+    color: #17447f;
+    border-color: #8aaddd;
+    background: linear-gradient(135deg, #fff, #e7f1ff);
+}
+
+.decline.selected {
+    color: white;
+    background: linear-gradient(135deg, #65a9ed, #2863b7);
+    box-shadow: 0 0 8px #66aaff, 0 0 16px #66aaff88;
+    animation: rsvp-pulse-blue 1.5s infinite;
+}
+
+.rsvp-loading,
+.rsvp-error {
+    margin: 4px 0 0;
+    font-size: 8px;
+    line-height: 1.2;
+}
+
+.rsvp-loading {
+    color: #fff8df;
+    animation: rsvp-loading 1s infinite alternate;
+}
+
+.rsvp-error {
+    color: #7d1717;
+    border-radius: 4px;
+    padding: 2px 4px;
+    background: rgba(255, 247, 226, 0.96);
+}
+
+.rsvp-result {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-sizing: border-box;
+    width: 100%;
+    margin: 4px auto 0;
+    overflow: hidden;
+    border: 1px solid;
+    border-radius: 10px;
+    padding: 4px 6px;
+    animation: rsvp-appear 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.result-attend {
+    color: #80500a;
+    border-color: #edc66d;
+    background: linear-gradient(135deg, #fffdf3, #fff0c4);
+    box-shadow: 0 3px 12px #e7b84b55;
+}
+
+.result-decline {
+    color: #17447f;
+    border-color: #a5c7ef;
+    background: linear-gradient(135deg, #f8fcff, #e3f0ff);
+    box-shadow: 0 3px 12px #6ba9e955;
+}
+
+.rsvp-result-icon {
+    display: grid;
+    flex: 0 0 22px;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    color: white;
+    background: #4caa58;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.result-decline .rsvp-result-icon {
+    background: #4b91d5;
+}
+
+.rsvp-result h3 {
+    margin: 0 0 2px;
+    font-size: 10px;
+    line-height: 1.1;
+}
+
+.rsvp-result p {
+    margin: 0;
+    font-size: 8px;
+    line-height: 1.2;
+}
+
+.rsvp-confetti {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.rsvp-confetti span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    border-radius: 1px;
+    background: #e9ad31;
+    animation: rsvp-confetti 1.2s ease-out both;
+    animation-delay: calc(var(--i) * 0.025s);
+}
+
+.rsvp-confetti span:nth-child(3n) {
+    background: #5a9bdc;
+}
+
+.rsvp-confetti span:nth-child(3n + 1) {
+    background: #f28ca7;
+}
+
+@keyframes rsvp-appear {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes rsvp-pulse-gold {
+    50% { box-shadow: 0 0 12px #eab94c, 0 0 20px #eab94c66; }
+}
+
+@keyframes rsvp-pulse-blue {
+    50% { box-shadow: 0 0 12px #66aaff, 0 0 20px #66aaff66; }
+}
+
+@keyframes rsvp-loading {
+    to { opacity: 0.45; }
+}
+
+@keyframes rsvp-confetti {
+    from {
+        opacity: 1;
+        transform: rotate(var(--angle)) translateY(0) scale(1);
+    }
+
+    to {
+        opacity: 0;
+        transform: rotate(var(--angle)) translateY(-45px) scale(0.3);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rsvp-button,
+    .rsvp-result,
+    .rsvp-confetti span {
+        animation: none !important;
+        transition: none !important;
+    }
+}
