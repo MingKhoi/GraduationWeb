@@ -1,36 +1,51 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 function InvitationPage() {
     const { token } = useParams<{ token: string }>();
-    const { login } = useAuth();
+    const { login, isAuthenticated, isLoading } = useAuth();
     const navigate = useNavigate();
-
-    const [error, setError] = useState('');
+    const processedToken = useRef<string | undefined>(undefined);
+    const [exchangeError, setExchangeError] = useState<{
+        token: string | undefined;
+        message: string;
+    } | null>(null);
+    const isTokenValid = Boolean(token && /^[a-f0-9]{64}$/i.test(token));
+    const error = exchangeError && exchangeError.token === token
+        ? exchangeError.message
+        : !isLoading && !isAuthenticated && !isTokenValid
+            ? 'Invitation link không hợp lệ.'
+            : '';
 
     useEffect(() => {
-        const exchangeToken = async () => {
-            if (!token || !/^[a-f0-9]{64}$/i.test(token)) {
-                setError('Invitation link không hợp lệ.');
-                return;
-            }
+        if (isLoading || processedToken.current === token) return;
+        processedToken.current = token;
 
+        if (isAuthenticated) {
+            navigate('/', { replace: true });
+            return;
+        }
+
+        if (!isTokenValid || !token) return;
+
+        const exchangeToken = async () => {
             try {
                 await login(token);
                 navigate('/world', { replace: true });
             } catch (err) {
-                setError(
-                    err instanceof Error
+                setExchangeError({
+                    token,
+                    message: err instanceof Error
                         ? err.message
                         : 'Không thể xác thực invitation link.',
-                );
+                });
             }
         };
 
-        exchangeToken();
-    }, [token, login, navigate]);
+        void exchangeToken();
+    }, [isAuthenticated, isLoading, isTokenValid, token, login, navigate]);
 
     if (error) {
         return (
@@ -44,7 +59,7 @@ function InvitationPage() {
     return (
         <div style={{ padding: 30 }}>
             <h1>Graduation World</h1>
-            <p>Đang xác thực invitation link...</p>
+            <p>{isLoading ? 'Đang kiểm tra phiên đăng nhập...' : 'Đang xác thực invitation link...'}</p>
         </div>
     );
 }

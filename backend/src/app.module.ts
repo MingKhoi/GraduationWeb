@@ -12,6 +12,9 @@ import { AuthModule } from './auth/auth.module.js';
 import { AdminAuthModule } from './admin-auth/admin-auth.module.js';
 import { AdminModule } from './admin/admin.module.js';
 import { WorldSettingsModule } from './world-settings/world-settings.module.js';
+import { LobbyModule } from './lobby/lobby.module.js';
+import { WishesModule } from './wishes/wishes.module.js';
+import { MemoriesModule } from './memories/memories.module.js';
 
 
 @Module({
@@ -28,6 +31,9 @@ import { WorldSettingsModule } from './world-settings/world-settings.module.js';
     AdminAuthModule,
     AdminModule,
     WorldSettingsModule,
+    LobbyModule,
+    WishesModule,
+    MemoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

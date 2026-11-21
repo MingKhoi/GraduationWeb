@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toBlob } from 'html-to-image';
 import { useAuth } from '../hooks/useAuth';
 import GraduationStoryScene from '../world/GraduationStoryScene';
@@ -6,21 +7,39 @@ import RsvpActions from '../world/RsvpActions';
 import { apiRequest } from '../services/api';
 import type { RSVPStatus } from '../types/auth.types';
 
-type ScriptStep = 'welcome' | 'teaser' | 'walking' | 'letter' | 'opening' | 'invitation';
+type ScriptStep = 'welcome' | 'teaser' | 'walking' | 'letter' | 'opening' | 'invitation' | 'explore';
+
+type WorldSettings = {
+    eventTitle: string;
+    eventDate: string | null;
+    eventDescription: string | null;
+};
 
 const invitationGateAddresses = [
     { label: 'Cổng 1', address: 'Cổng 1: 268 Đ. Lý Thường Kiệt, Điền Hồng, Hồ Chí Minh, Việt Nam' },
     { label: 'Cổng 3', address: 'Cổng 3: 142 Tô Hiến Thành, Điền Hồng, Hồ Chí Minh, Việt Nam' },
 ] as const;
 
+function isInvitationNavigationState(state: unknown): state is { openInvitation: true } {
+    return typeof state === 'object'
+        && state !== null
+        && 'openInvitation' in state
+        && state.openInvitation === true;
+}
+
 function WorldPage() {
     const { guest } = useAuth();
+    const location = useLocation();
+    const navigate = useNavigate();
     const stageRef = useRef<HTMLElement | null>(null);
-    const [step, setStep] = useState<ScriptStep>('welcome');
+    const [step, setStep] = useState<ScriptStep>(
+        () => isInvitationNavigationState(location.state) ? 'invitation' : 'welcome',
+    );
     const [feedback, setFeedback] = useState('');
     const [feedbackType, setFeedbackType] = useState<'success' | 'error'>('success');
     const [isCopyingAddress, setIsCopyingAddress] = useState(false);
     const [isSavingInvitation, setIsSavingInvitation] = useState(false);
+    const [worldSettings, setWorldSettings] = useState<WorldSettings | null>(null);
 
     const guestName = guest?.fullName || guest?.profile?.nickname || 'bạn';
     const invitationMessage = guest?.invitation?.message?.trim()
@@ -29,7 +48,7 @@ function WorldPage() {
     const teaserLine = 'À, mà khoan! Mình có một món quà đặc biệt muốn gửi đến bạn. Theo mình nào!';
     const walkingLine = 'Đi thôi! Khôi đang dẫn bạn đến tấm thiệp đã chuẩn bị riêng.';
     const letterLine = 'Đến nơi rồi! Đây là tấm thiệp mình đã chuẩn bị riêng cho bạn. Nhấn vào để mở nhé!';
-    const sceneStage = step === 'welcome'
+    const sceneStage = step === 'welcome' || step === 'explore'
         ? 'welcome'
         : step === 'teaser' || step === 'walking'
             ? 'walk'
@@ -63,6 +82,12 @@ function WorldPage() {
         );
         return () => window.clearTimeout(timer);
     }, [step]);
+
+    useEffect(() => {
+        apiRequest<WorldSettings>('/world-settings')
+            .then(setWorldSettings)
+            .catch(() => setWorldSettings(null));
+    }, []);
 
     useEffect(() => () => {
         window.speechSynthesis?.cancel();
@@ -152,6 +177,20 @@ function WorldPage() {
         }
     };
 
+    const formatEventDate = (value: string | null) => {
+        if (!value) return 'Đang cập nhật';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return 'Đang cập nhật';
+        return new Intl.DateTimeFormat('vi-VN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            timeZone: 'Asia/Ho_Chi_Minh',
+        }).format(date);
+    };
+
+    const eventDateLabel = formatEventDate(worldSettings?.eventDate ?? null);
+
     return (
         <main className="graduation-world">
             <section className="world-mobile-experience">
@@ -159,7 +198,7 @@ function WorldPage() {
                     ref={stageRef}
                     className="world-stage"
                     data-story-step={step}
-                    aria-label="Hành trình cùng Khôi"
+                    aria-label={step === 'explore' ? 'Khám phá Graduation World' : 'Hành trình cùng Khôi'}
                 >
                     <GraduationStoryScene stage={sceneStage} motion={sceneMotion} />
 
@@ -170,7 +209,60 @@ function WorldPage() {
                         </div>
                     )}
 
-                    {step !== 'invitation' && step !== 'opening' ? (
+                    {step === 'explore' ? (
+                        <section className="world-explore-screen" aria-label="Khám phá Graduation World">
+                            <header className="world-explore-header">
+                                <button
+                                    className="world-explore-back"
+                                    onClick={() => setStep('invitation')}
+                                    aria-label="Quay lại thiệp mời"
+                                >
+                                    ←
+                                </button>
+                                <span>GRADUATION WORLD</span>
+                                <span className="world-explore-cap" aria-hidden="true">🎓</span>
+                            </header>
+                            <div className="world-explore-content">
+                                <section className="world-explore-hero">
+                                    <img
+                                        src="/admin/campus-illustration.png"
+                                        alt="Khuôn viên Graduation World"
+                                    />
+                                    <span className="world-explore-eyebrow">✦ THẾ GIỚI CỦA KHÔI ✦</span>
+                                    <h1>Chào mừng đến<br />Graduation World!</h1>
+                                    <p>
+                                        Một góc nhỏ lưu giữ hành trình tốt nghiệp và những khoảnh khắc
+                                        đáng nhớ cùng bạn bè.
+                                    </p>
+                                    <span className="world-explore-sparkle world-explore-sparkle--one" aria-hidden="true">✦</span>
+                                    <span className="world-explore-sparkle world-explore-sparkle--two" aria-hidden="true">✧</span>
+                                </section>
+                                <p className="world-explore-greeting">
+                                    <span aria-hidden="true">👋</span>
+                                    {guestName}, bạn muốn khám phá điều gì tiếp theo?
+                                </p>
+                                <div className="world-explore-links">
+                                    <button onClick={() => setStep('invitation')}>
+                                        <span className="world-explore-link-icon" aria-hidden="true">✉</span>
+                                        <span>
+                                            <strong>Thiệp mời của bạn</strong>
+                                            <small>Xem lại lời mời và thông tin buổi lễ</small>
+                                        </span>
+                                        <span className="world-explore-link-arrow" aria-hidden="true">→</span>
+                                    </button>
+                                    <button onClick={() => setStep('welcome')}>
+                                        <span className="world-explore-link-icon world-explore-link-icon--gold" aria-hidden="true">🎓</span>
+                                        <span>
+                                            <strong>Hành trình cùng Khôi</strong>
+                                            <small>Gặp lại Khôi và xem lại lời chào</small>
+                                        </span>
+                                        <span className="world-explore-link-arrow" aria-hidden="true">→</span>
+                                    </button>
+                                </div>
+                                <p className="world-explore-footer">KẾT NỐI · QUẢN LÝ · TỎA SÁNG</p>
+                            </div>
+                        </section>
+                    ) : step !== 'invitation' && step !== 'opening' ? (
                         <div key={step} className={`world-dialogue world-dialogue--${step}`} aria-live="polite">
                             <div className="world-dialogue-content">
                                 <div className="world-speaker-row">
@@ -215,54 +307,107 @@ function WorldPage() {
                             </div>
                         </div>
                     ) : step === 'invitation' ? (
-                        <>
+                        <section className="world-invitation-screen" aria-label="Thiệp mời tốt nghiệp">
+                            <header className="world-invitation-heading">
+                                <span className="world-invitation-heading-icon" aria-hidden="true">✦</span>
+                                <span className="world-invitation-heading-cap" aria-hidden="true">🎓</span>
+                            </header>
                             <div className="world-invitation-art">
-                                <img src="/storyboard/invitation-template.png" alt="" />
-                                <p className="world-art-guest">Kính mời {guestName}</p>
-                                <p className="world-art-message">{invitationMessage}</p>
-                                <button
-                                    className="world-art-address-copy world-art-address-copy--gate-one"
-                                    onClick={() => void copyAddress(invitationGateAddresses[0])}
-                                    disabled={isCopyingAddress}
-                                    aria-label="Sao chép địa chỉ Cổng 1"
-                                    title="Sao chép địa chỉ Cổng 1"
-                                >
-                                    <span className="world-art-copy-icon" aria-hidden="true" />
-                                </button>
-                                <button
-                                    className="world-art-address-copy world-art-address-copy--gate-three"
-                                    onClick={() => void copyAddress(invitationGateAddresses[1])}
-                                    disabled={isCopyingAddress}
-                                    aria-label="Sao chép địa chỉ Cổng 3"
-                                    title="Sao chép địa chỉ Cổng 3"
-                                >
-                                    <span className="world-art-copy-icon" aria-hidden="true" />
-                                </button>
+                                <article className="world-invitation-card">
+                                    <div className="world-invitation-card-head">
+                                        <img
+                                            className="world-invitation-card-banner"
+                                            src="/storyboard/banner.png"
+                                            alt="Thư mời lễ tốt nghiệp"
+                                        />
+                                        <h1>{guestName}</h1>
+                                    </div>
+                                    <div className="world-invitation-card-body">
+                                        <p className="world-invitation-card-message">
+                                            {invitationMessage}
+                                        </p>
+                                        <div className="world-invitation-card-details">
+                                            <div className="world-invitation-card-detail">
+                                                {/* <span className="world-invitation-card-detail-icon" aria-hidden="true">◷</span> */}
+                                                <div>
+                                                    <span>Thời gian</span>
+                                                    <strong>{eventDateLabel}</strong>
+                                                    <strong>9h30–13h</strong>
+                                                </div>
+                                            </div>
+                                            <div className="world-invitation-card-detail">
+                                                {/* <span className="world-invitation-card-detail-icon" aria-hidden="true">⌖</span> */}
+                                                <div>
+                                                    <span>Địa điểm</span>
+                                                    <div className="world-invitation-card-address-actions">
+                                                        {invitationGateAddresses.map((gate) => (
+                                                            <div className="world-invitation-card-address-row" key={gate.label}>
+                                                                <strong>
+                                                                    {gate.label}: {gate.label === 'Cổng 1'
+                                                                        ? '268 Lý Thường Kiệt'
+                                                                        : '142 Tô Hiến Thành'}
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => void copyAddress(gate)}
+                                                                        disabled={isCopyingAddress}
+                                                                        aria-label={`Sao chép địa chỉ ${gate.label}`}
+                                                                        title={`Sao chép địa chỉ ${gate.label}`}
+                                                                    >
+                                                                        <svg
+                                                                            aria-hidden="true"
+                                                                            viewBox="0 0 24 24"
+                                                                            width="16"
+                                                                            height="16"
+                                                                            fill="none"
+                                                                        >
+                                                                            <rect x="8" y="8" width="11" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
+                                                                            <path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                                                                        </svg>
+                                                                    </button>
+                                                                </strong>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </article>
+                            </div>
+                            <div className="world-invitation-controls">
+                                <p className="world-invitation-prompt">Bạn sẽ tham dự chứ?</p>
                                 <div className="world-art-rsvp-section">
                                     <RsvpActions
                                         onSubmit={saveRsvp}
                                         initialStatus={guest?.rsvp?.status ?? null}
                                     />
                                 </div>
-                                <button
-                                    className="world-art-utility-button world-art-utility-button--save"
-                                    onClick={() => void saveInvitation()}
-                                    disabled={isSavingInvitation}
-                                    aria-label="Tải hình ảnh màn hình thiệp mời"
-                                >
-                                    Lưu thiệp
-                                </button>
-                                {feedback && (
-                                    <p className={`world-art-feedback is-${feedbackType}`} role="status">
-                                        {feedback}
-                                    </p>
-                                )}
+                                <div className="world-invitation-actions">
+                                    <button
+                                        className="world-art-utility-button world-art-utility-button--save"
+                                        onClick={() => void saveInvitation()}
+                                        disabled={isSavingInvitation}
+                                    >
+                                        {isSavingInvitation ? 'Đang lưu...' : 'Lưu thiệp mời'}
+                                    </button>
+                                    {feedback && (
+                                        <p className={`world-art-feedback is-${feedbackType}`} role="status">
+                                            {feedback}
+                                        </p>
+                                    )}
+                                </div>
                             </div>
-                            <div className="world-rotate-message" role="status">
-                                <span className="world-rotate-icon" aria-hidden="true">↻</span>
-                                <p>Xoay ngang điện thoại để xem trọn thiệp mời</p>
-                            </div>
-                        </>
+                            <button
+                                className="world-explore-cta"
+                                onClick={() => navigate('/')}
+                            >
+                                <span className="world-explore-cta-icon" aria-hidden="true">✦</span>
+                                <span className="world-explore-cta-copy">
+                                    <small>Tiếp tục khám phá</small>
+                                </span>
+                                <span className="world-explore-cta-arrow" aria-hidden="true">→</span>
+                            </button>
+                        </section>
                     ) : null}
                 </section>
             </section>

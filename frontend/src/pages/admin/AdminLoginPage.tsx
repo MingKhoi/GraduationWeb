@@ -27,14 +27,37 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="admin-login">
-      <form onSubmit={submit}>
-        <h1>Đăng nhập Admin</h1>
-        {error && <p className="admin-error">{error}</p>}
-        <label>Email<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
-        <label>Mật khẩu<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} /></label>
-        <button disabled={loading}>{loading ? 'Đang đăng nhập...' : 'Đăng nhập'}</button>
+    <main className="admin-login">
+      <section className="admin-login-hero" aria-label="Graduation World">
+        <img src="/admin/graduation-world-hero.png" alt="" />
+        <img className="admin-login-campus" src="/admin/campus-illustration.png" alt="" />
+      </section>
+      <form className="admin-login-card" onSubmit={submit}>
+        <div className="admin-login-logo">
+          <span className="admin-login-badge" aria-hidden="true">🎓</span>
+          <div>
+            <h2>Admin Login</h2>
+            <p className="admin-login-sub">Cổng quản trị sự kiện tốt nghiệp</p>
+          </div>
+        </div>
+        {error && <p className="admin-error" role="alert">⚠️ {error}</p>}
+        <label>
+          Email admin
+          <span className="admin-input-wrap">
+            <span aria-hidden="true">✉</span>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="username" placeholder="admin@example.com" />
+          </span>
+        </label>
+        <label>
+          Mật khẩu
+          <span className="admin-input-wrap">
+            <span aria-hidden="true">▣</span>
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} autoComplete="current-password" placeholder="Nhập mật khẩu" />
+          </span>
+        </label>
+        <button disabled={loading}>{loading ? 'Đang đăng nhập...' : 'Đăng nhập'} <span aria-hidden="true">→</span></button>
+        <p className="admin-login-footnote"><strong>Graduation World</strong><br />Khu vực dành riêng cho quản trị viên</p>
       </form>
-    </div>
+    </main>
   );
 }

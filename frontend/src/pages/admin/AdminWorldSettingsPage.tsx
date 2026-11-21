@@ -16,6 +16,7 @@ export default function AdminWorldSettingsPage() {
   const [settings, setSettings] = useState<WorldSettings | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     apiRequest<WorldSettings>('/world-settings/admin')
@@ -28,15 +29,18 @@ export default function AdminWorldSettingsPage() {
     if (!settings) return;
     setError('');
     setSuccess('');
+    setIsSaving(true);
     try {
       const saved = await apiRequest<WorldSettings>('/world-settings/admin', {
         method: 'PUT',
         body: JSON.stringify(settings),
       });
       setSettings(saved);
-      setSuccess('Đã lưu cài đặt thế giới.');
+      setSuccess('✓ Đã lưu cài đặt thế giới.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Không thể lưu cài đặt');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -44,23 +48,56 @@ export default function AdminWorldSettingsPage() {
     setSettings((current) => current ? { ...current, [field]: value || null } : current);
   };
 
-  if (!settings) return <p className="admin-loading">Đang tải cài đặt...</p>;
+  if (!settings) {
+    return (
+      error
+        ? <p className="admin-error" role="alert">⚠️ {error}</p>
+        : <p className="admin-loading">
+            <span className="admin-spinner" aria-hidden="true" />
+            Đang tải cài đặt...
+          </p>
+    );
+  }
 
   return (
-    <section>
-      <h1>Cài đặt thế giới</h1>
+    <section className="admin-settings-page">
       {error && <p className="admin-error">{error}</p>}
       {success && <p className="admin-success">{success}</p>}
-      <form className="admin-form" onSubmit={update}>
-        <label>Tên sự kiện<input value={settings.eventTitle} onChange={(e) => setField('eventTitle', e.target.value)} /></label>
-        <label>Ngày sự kiện<input type="date" value={settings.eventDate?.slice(0, 10) ?? ''} onChange={(e) => setField('eventDate', e.target.value)} /></label>
-        <label>Mô tả<textarea value={settings.eventDescription ?? ''} onChange={(e) => setField('eventDescription', e.target.value)} /></label>
-        <label>Lời chào<textarea value={settings.welcomeMessage ?? ''} onChange={(e) => setField('welcomeMessage', e.target.value)} /></label>
-        <label>Tên thế giới<input value={settings.worldName} onChange={(e) => setField('worldName', e.target.value)} /></label>
-        <label>URL nhạc nền<input type="url" value={settings.musicUrl ?? ''} onChange={(e) => setField('musicUrl', e.target.value)} /></label>
-        <label>Môi trường<select value={settings.environment} onChange={(e) => setField('environment', e.target.value)}><option value="night">Night</option><option value="day">Day</option><option value="campus">Campus</option></select></label>
-        <label>Thông báo công khai<textarea value={settings.announcement ?? ''} onChange={(e) => setField('announcement', e.target.value)} /></label>
-        <button>Lưu cài đặt</button>
+      <form className="admin-settings-form" onSubmit={update}>
+        <div className="admin-panel">
+          <div className="admin-settings-panel-title">
+            <span aria-hidden="true">✦</span>
+            <div>
+              <h2>Thông tin sự kiện</h2>
+              <p className="admin-panel-sub">Các nội dung cơ bản hiển thị trong lời mời của bạn.</p>
+            </div>
+          </div>
+          <div className="admin-form-grid">
+            <label>Tên sự kiện<input value={settings.eventTitle} onChange={(e) => setField('eventTitle', e.target.value)} required /></label>
+            <label>Ngày sự kiện<input type="date" value={settings.eventDate?.slice(0, 10) ?? ''} onChange={(e) => setField('eventDate', e.target.value)} /></label>
+          </div>
+          <label>Mô tả sự kiện<textarea value={settings.eventDescription ?? ''} onChange={(e) => setField('eventDescription', e.target.value)} rows={3} /></label>
+          <label>Lời chào khách mời<textarea value={settings.welcomeMessage ?? ''} onChange={(e) => setField('welcomeMessage', e.target.value)} rows={3} /></label>
+        </div>
+        <div className="admin-panel">
+          <div className="admin-settings-panel-title">
+            <span aria-hidden="true">☁</span>
+            <div>
+              <h2>Thế giới &amp; thông báo</h2>
+              <p className="admin-panel-sub">Tùy chỉnh không gian và thông tin gửi đến khách.</p>
+            </div>
+          </div>
+          <div className="admin-form-grid">
+            <label>Tên thế giới<input value={settings.worldName} onChange={(e) => setField('worldName', e.target.value)} required /></label>
+            <label>Môi trường<select value={settings.environment} onChange={(e) => setField('environment', e.target.value)}><option value="night">Ban đêm</option><option value="day">Ban ngày</option><option value="campus">Khuôn viên trường</option></select></label>
+          </div>
+          <label>URL nhạc nền<input type="url" value={settings.musicUrl ?? ''} onChange={(e) => setField('musicUrl', e.target.value)} placeholder="https://..." /></label>
+          <label>Thông báo công khai<textarea value={settings.announcement ?? ''} onChange={(e) => setField('announcement', e.target.value)} rows={3} /></label>
+        </div>
+        <div className="admin-settings-actions">
+          <span>Các thay đổi chỉ được áp dụng sau khi lưu.</span>
+          <button disabled={isSaving}>{isSaving ? 'Đang lưu...' : 'Lưu cài đặt'}</button>
+        </div>
       </form>
     </section>
   );

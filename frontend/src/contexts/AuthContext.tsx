@@ -7,7 +7,7 @@ import {
 } from 'react';
 
 import { authService } from '../services/auth.service';
-import type { Guest } from '../types/auth.types';
+import type { Guest, GuestProfile } from '../types/auth.types';
 
 interface AuthContextType {
     guest: Guest | null;
@@ -16,6 +16,7 @@ interface AuthContextType {
     login: (token: string) => Promise<Guest>;
     logout: () => Promise<void>;
     refreshUser: () => Promise<void>;
+    updateGuestProfile: (profile: GuestProfile) => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -70,6 +71,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
     };
 
+    const updateGuestProfile = useCallback((profile: GuestProfile) => {
+        setGuest((currentGuest) => (
+            currentGuest ? { ...currentGuest, profile } : currentGuest
+        ));
+    }, []);
+
     return (
         <AuthContext.Provider
             value={{
@@ -79,6 +86,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 login,
                 logout,
                 refreshUser,
+                updateGuestProfile,
             }}
         >
             {children}

@@ -10,7 +10,7 @@ const backgrounds: Record<StorySceneStage, string> = {
     welcome: '/storyboard/welcome.webp',
     walk: '/storyboard/walk.webp',
     letter: '/storyboard/letter.webp',
-    invitation: '/storyboard/invitation-template.png',
+    invitation: '/storyboard/background.png',
 };
 
 export default function GraduationStoryScene({ stage, motion }: GraduationStorySceneProps) {

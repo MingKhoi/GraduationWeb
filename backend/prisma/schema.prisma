@@ -25,6 +25,8 @@ model Guest {
   profile    GuestProfile?
 
   sessions GuestSession[]
+  wishes   Wish[]
+  memories MemoryPhoto[]
 }
 
 model Invitation {
@@ -91,6 +93,33 @@ model AdminSession {
 
   @@index([adminId])
   @@index([expiresAt])
+}
+
+model Wish {
+  id         String   @id @default(uuid())
+  senderName String
+  message    String
+  paperColor String
+  createdAt  DateTime @default(now())
+  guestId    String
+
+  guest Guest @relation(fields: [guestId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+}
+
+model MemoryPhoto {
+  id         String   @id @default(uuid())
+  fileName   String   @unique
+  mimeType   String
+  senderName String
+  note       String?
+  createdAt  DateTime @default(now())
+  guestId    String
+
+  guest Guest @relation(fields: [guestId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
 }
 
 model WorldSettings {

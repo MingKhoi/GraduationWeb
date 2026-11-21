@@ -1,8 +1,11 @@
 
 import { Routes, Route } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
 import InvitationPage from '../pages/InvitationPage';
+import HomePage from '../pages/HomePage';
 import WorldPage from '../pages/WorldPage';
+import LobbyPage from '../pages/LobbyPage';
+import WishesPage from '../pages/WishesPage';
+import MemoriesPage from '../pages/MemoriesPage';
 import ProtectedRoute from './ProtectedRoute';
 import AdminRoute from './AdminRoute';
 import AdminLayout from '../admin/AdminLayout';
@@ -13,25 +16,6 @@ import AdminInvitationsPage from '../pages/admin/AdminInvitationsPage';
 import AdminRsvpsPage from '../pages/admin/AdminRsvpsPage';
 import AdminWorldSettingsPage from '../pages/admin/AdminWorldSettingsPage';
 
-function HomePage() {
-    const { isAuthenticated, isLoading } = useAuth();
-
-    if (isLoading) {
-        return <p>Đang kiểm tra phiên đăng nhập...</p>;
-    }
-
-    return (
-        <div style={{ padding: 30 }}>
-            <h1>Graduation World</h1>
-            {isAuthenticated ? (
-                <p>Bạn đã đăng nhập.</p>
-            ) : (
-                <p>Bạn chưa đăng nhập. Vui lòng mở invitation link.</p>
-            )}
-        </div>
-    );
-}
-
 function AppRoutes() {
     return (
         <Routes>
@@ -40,6 +24,9 @@ function AppRoutes() {
 
             <Route element={<ProtectedRoute />}>
                 <Route path="/world" element={<WorldPage />} />
+                <Route path="/lobby" element={<LobbyPage />} />
+                <Route path="/wishes" element={<WishesPage />} />
+                <Route path="/memories" element={<MemoriesPage />} />
             </Route>
 
             <Route path="/admin/login" element={<AdminLoginPage />} />
