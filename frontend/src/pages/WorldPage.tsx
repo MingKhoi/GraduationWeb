@@ -332,7 +332,7 @@ function WorldPage() {
                                                 {/* <span className="world-invitation-card-detail-icon" aria-hidden="true">◷</span> */}
                                                 <div>
                                                     <span>Thời gian</span>
-                                                    <strong>{eventDateLabel}</strong>
+                                                    <strong>'28/11/2026'</strong>
                                                     <strong>9h30–13h</strong>
                                                 </div>
                                             </div>

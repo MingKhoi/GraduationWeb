@@ -8,12 +8,12 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  width: min(100%, 520px);
+  /* width: min(100%, 520px); */
   height: 100svh;
   height: 100dvh;
   min-height: 580px;
   margin: 0 auto;
-  overflow: hidden;
+  /* overflow: hidden; */
   color: #172f69;
   background:
     /* linear-gradient(180deg, rgba(18, 54, 117, .52), rgba(235, 242, 255, .76) 44%, rgba(244, 247, 253, .95)), */
