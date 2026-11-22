@@ -136,13 +136,18 @@
     display: grid;
     flex: 0 0 22px;
     place-items: center;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
+    /* width: 22px; */
+    /* height: 22px; */
+    /* border-radius: 50%; */
     color: white;
-    background: #4caa58;
+    /* background: #4caa58; */
     font-size: 14px;
     font-weight: bold;
+}
+
+.rsvp-result-icon-img {
+    width: 50px;
+    height: 50px;
 }
 
 .result-decline .rsvp-result-icon {
@@ -200,15 +205,21 @@
 }
 
 @keyframes rsvp-pulse-gold {
-    50% { box-shadow: 0 0 12px #eab94c, 0 0 20px #eab94c66; }
+    50% {
+        box-shadow: 0 0 12px #eab94c, 0 0 20px #eab94c66;
+    }
 }
 
 @keyframes rsvp-pulse-blue {
-    50% { box-shadow: 0 0 12px #66aaff, 0 0 20px #66aaff66; }
+    50% {
+        box-shadow: 0 0 12px #66aaff, 0 0 20px #66aaff66;
+    }
 }
 
 @keyframes rsvp-loading {
-    to { opacity: 0.45; }
+    to {
+        opacity: 0.45;
+    }
 }
 
 @keyframes rsvp-confetti {
@@ -224,6 +235,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
     .rsvp-button,
     .rsvp-result,
     .rsvp-confetti span {

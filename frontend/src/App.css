@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;600;700&display=swap');
+
 .counter {
   font-size: 16px;
   padding: 5px 10px;
@@ -3752,7 +3754,7 @@
     min-height: 54px;
     height: auto;
     border-radius: 12px;
-    font-size: 20px;
+    font-size: 15px;
   }
 
   .world-invitation-controls .rsvp-button-icon,
@@ -3777,7 +3779,7 @@
   }
 
   .world-invitation-controls .rsvp-result p {
-    font-size: 20px;
+    font-size: 15px;
   }
 
   .world-invitation-actions {
@@ -3799,7 +3801,7 @@
     color: #fff;
     background: linear-gradient(135deg, #2759b2, #153d88);
     box-shadow: 0 5px 13px rgba(26, 61, 133, .2);
-    font-size: 20px;
+    font-size: 15px;
   }
 
   .world-invitation-actions .world-art-feedback {
@@ -3813,13 +3815,13 @@
 
   .world-explore-cta {
     position: static;
-    align-self: flex-end;
-    z-index: 20;
+    /* align-self: flex-end; */
+    /* z-index: 20; */
     display: flex;
     align-items: center;
     gap: 11px;
-    width: min(340px, calc(100% - 28px));
-    min-height: 88px;
+    /* width: min(340px, calc(100% - 28px)); */
+    /* min-height: 88px; */
     box-sizing: border-box;
     border: 1px solid rgba(255, 221, 130, .96);
     border-radius: 18px;
@@ -3863,7 +3865,7 @@
 
   .world-explore-cta .world-explore-cta-copy small {
     color: #dbe8ff;
-    font-size: 20px;
+    font-size: 15px;
     font-family: 'Segoe UI', Roboto, sans-serif;
     font-weight: 800;
     letter-spacing: .03em;
@@ -4249,6 +4251,9 @@
   border-bottom: 1px solid #e1e7f1;
   padding: 14px 18px 11px;
   background: rgba(255, 255, 255, .72);
+  font-family: 'Dancing Script', cursive;
+  font-weight: 600;
+  font-size: 42px;
 }
 
 .world-invitation-card-banner {
@@ -4453,7 +4458,7 @@
   .world-invitation-card-detail strong,
   .world-invitation-card-detail small,
   .world-invitation-card-detail button {
-    font-size: 20px;
+    font-size: 15px;
   }
 
   .world-invitation-card-detail div>span {
@@ -4485,7 +4490,7 @@
 
   .world-invitation-card-details {
     align-self: stretch;
-    grid-template-columns: minmax(0, 1fr);
+    /* grid-template-columns: minmax(0, 1fr); */
     gap: 5px;
     padding: 6px;
   }
@@ -4502,7 +4507,7 @@
   }
 
   .world-invitation-card-address-row strong {
-    font-size: 20px;
+    font-size: 15px;
     white-space: normal;
   }
 

@@ -101,15 +101,22 @@ export default function RsvpActions({
                     )}
 
                     <div className="rsvp-result-icon" aria-hidden="true">
-                        {isAttending ? '✓' : '♡'}
+                        <img className="rsvp-result-icon-img"
+                            src={
+                                isAttending
+                                    ? '/storyboard/happy.png'
+                                    : '/storyboard/sad.png'
+                            }
+                            alt=""
+                        />
                     </div>
 
                     <div>
-                        <h3>{isAttending ? 'Tuyệt vời!' : 'Cảm ơn bạn đã phản hồi!'}</h3>
+                        <h3>{isAttending ? 'Deeeeeeee' : 'Buồn thíiiiii'}</h3>
                         <p>
                             {isAttending
-                                ? 'Hẹn gặp bạn tại lễ tốt nghiệp nhé!'
-                                : 'Tiếc là lần này chúng ta chưa thể gặp nhau.'}
+                                ? 'Bạn nhát định phải tới nheee!!'
+                                : `Chả iu em.`}
                         </p>
                     </div>
                 </div>

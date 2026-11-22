@@ -310,16 +310,17 @@ function WorldPage() {
                         <section className="world-invitation-screen" aria-label="Thiệp mời tốt nghiệp">
                             <header className="world-invitation-heading">
                                 <span className="world-invitation-heading-icon" aria-hidden="true">✦</span>
-                                <span className="world-invitation-heading-cap" aria-hidden="true">🎓</span>
                             </header>
+                            <img
+                                className="world-invitation-card-banner"
+                                src="/storyboard/banner.png"
+                                alt="Thư mời lễ tốt nghiệp"
+                            />
                             <div className="world-invitation-art">
                                 <article className="world-invitation-card">
+
                                     <div className="world-invitation-card-head">
-                                        <img
-                                            className="world-invitation-card-banner"
-                                            src="/storyboard/banner.png"
-                                            alt="Thư mời lễ tốt nghiệp"
-                                        />
+
                                         <h1>{guestName}</h1>
                                     </div>
                                     <div className="world-invitation-card-body">
@@ -405,7 +406,6 @@ function WorldPage() {
                                 <span className="world-explore-cta-copy">
                                     <small>Tiếp tục khám phá</small>
                                 </span>
-                                <span className="world-explore-cta-arrow" aria-hidden="true">→</span>
                             </button>
                         </section>
                     ) : null}
