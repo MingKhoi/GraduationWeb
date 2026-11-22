@@ -188,8 +188,11 @@ function WorldPage() {
             timeZone: 'Asia/Ho_Chi_Minh',
         }).format(date);
     };
+    const DEFAULT_EVENT_DATE = '2026-11-28';
 
-    // const eventDateLabel = formatEventDate(worldSettings?.eventDate ?? null);
+    const eventDateLabel = formatEventDate(
+        worldSettings?.eventDate ?? DEFAULT_EVENT_DATE,
+    );
 
     return (
         <main className="graduation-world">
@@ -332,7 +335,7 @@ function WorldPage() {
                                                 {/* <span className="world-invitation-card-detail-icon" aria-hidden="true">◷</span> */}
                                                 <div>
                                                     <span>Thời gian</span>
-                                                    <strong>'28/11/2026'</strong>
+                                                    <strong>{eventDateLabel}</strong>
                                                     <strong>9h30–13h</strong>
                                                 </div>
                                             </div>
