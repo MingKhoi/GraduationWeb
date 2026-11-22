@@ -189,7 +189,7 @@ function WorldPage() {
         }).format(date);
     };
 
-    const eventDateLabel = formatEventDate(worldSettings?.eventDate ?? null);
+    // const eventDateLabel = formatEventDate(worldSettings?.eventDate ?? null);
 
     return (
         <main className="graduation-world">
