@@ -308,9 +308,9 @@ function WorldPage() {
                         </div>
                     ) : step === 'invitation' ? (
                         <section className="world-invitation-screen" aria-label="Thiệp mời tốt nghiệp">
-                            <header className="world-invitation-heading">
+                            {/* <header className="world-invitation-heading">
                                 <span className="world-invitation-heading-icon" aria-hidden="true">✦</span>
-                            </header>
+                            </header> */}
                             <img
                                 className="world-invitation-card-banner"
                                 src="/storyboard/banner.png"
@@ -374,30 +374,31 @@ function WorldPage() {
                                         </div>
                                     </div>
                                 </article>
-                            </div>
-                            <div className="world-invitation-controls">
-                                <p className="world-invitation-prompt">Bạn sẽ tham dự chứ?</p>
-                                <div className="world-art-rsvp-section">
-                                    <RsvpActions
-                                        onSubmit={saveRsvp}
-                                        initialStatus={guest?.rsvp?.status ?? null}
-                                    />
+                                <div className="world-invitation-controls">
+                                    <p className="world-invitation-prompt">Bạn sẽ tham dự chứ?</p>
+                                    <div className="world-art-rsvp-section">
+                                        <RsvpActions
+                                            onSubmit={saveRsvp}
+                                            initialStatus={guest?.rsvp?.status ?? null}
+                                        />
+                                    </div>
+                                    <div className="world-invitation-actions">
+                                        <button
+                                            className="world-art-utility-button world-art-utility-button--save"
+                                            onClick={() => void saveInvitation()}
+                                            disabled={isSavingInvitation}
+                                        >
+                                            {isSavingInvitation ? 'Đang lưu...' : 'Lưu thiệp mời'}
+                                        </button>
+                                        {feedback && (
+                                            <p className={`world-art-feedback is-${feedbackType}`} role="status">
+                                                {feedback}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="world-invitation-actions">
-                                    <button
-                                        className="world-art-utility-button world-art-utility-button--save"
-                                        onClick={() => void saveInvitation()}
-                                        disabled={isSavingInvitation}
-                                    >
-                                        {isSavingInvitation ? 'Đang lưu...' : 'Lưu thiệp mời'}
-                                    </button>
-                                    {feedback && (
-                                        <p className={`world-art-feedback is-${feedbackType}`} role="status">
-                                            {feedback}
-                                        </p>
-                                    )}
-                                </div>
                             </div>
+
                             <button
                                 className="world-explore-cta"
                                 onClick={() => navigate('/')}
