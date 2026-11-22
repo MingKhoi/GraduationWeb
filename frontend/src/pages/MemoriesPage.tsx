@@ -39,7 +39,7 @@ const BOARD_SLOTS = [
     { left: 75, top: 68.5, rotation: 3 },
 ];
 
-type FrameChoice = 'bku' | 'none';
+// type FrameChoice = 'bku' | 'none';
 
 interface PhotoDraft {
     file: File;
@@ -90,12 +90,13 @@ function canvasToJpeg(canvas: HTMLCanvasElement): Promise<Blob> {
 
 async function captureVideoFrame(
     video: HTMLVideoElement,
-    frameChoice: FrameChoice,
 ): Promise<File> {
     const canvas = document.createElement('canvas');
     canvas.width = 1600;
     canvas.height = 1082;
+
     const context = canvas.getContext('2d');
+
     if (!context || !video.videoWidth || !video.videoHeight) {
         throw new Error('Camera chưa sẵn sàng. Vui lòng chờ và chụp lại.');
     }
@@ -109,13 +110,11 @@ async function captureVideoFrame(
         canvas.height,
     );
 
-    if (frameChoice === 'bku') {
-        const frame = await loadImage(PHOTO_FRAME_URL);
-        context.drawImage(frame, 0, 0, canvas.width, canvas.height);
-    }
-
     const blob = await canvasToJpeg(canvas);
-    return new File([blob], 'graduation-photo.jpg', { type: 'image/jpeg' });
+
+    return new File([blob], 'graduation-photo.jpg', {
+        type: 'image/jpeg',
+    });
 }
 
 function wrapNote(
@@ -228,7 +227,8 @@ function MemoriesPage() {
     const [successMessage, setSuccessMessage] = useState('');
     const [draft, setDraft] = useState<PhotoDraft | null>(null);
     const [draftNote, setDraftNote] = useState('');
-    const [frameChoice, setFrameChoice] = useState<FrameChoice>('bku');
+    // const [frameChoice, setFrameChoice] = useState<FrameChoice>('bku');
+    const [cameraFacing, setCameraFacing] = useState<'user' | 'environment'>('user');
     const [isCameraOpen, setIsCameraOpen] = useState(false);
     const [isCameraReady, setIsCameraReady] = useState(false);
     const [cameraError, setCameraError] = useState('');
@@ -299,40 +299,52 @@ function MemoriesPage() {
 
     useEffect(() => {
         if (!isCameraOpen) return;
+
         let isActive = true;
         let cameraStream: MediaStream | null = null;
         const cameraVideo = videoRef.current;
 
         const startCamera = async () => {
             if (!navigator.mediaDevices?.getUserMedia) return;
+
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'user' },
+                    video: {
+                        facingMode: { ideal: cameraFacing },
+                    },
                     audio: false,
                 });
+
                 if (!isActive) {
                     stream.getTracks().forEach((track) => track.stop());
                     return;
                 }
 
                 cameraStream = stream;
+
                 if (cameraVideo) {
                     cameraVideo.srcObject = stream;
                     await cameraVideo.play();
                     setIsCameraReady(true);
                 }
             } catch (error) {
-                if (isActive) setCameraError(cameraErrorText(error));
+                if (isActive) {
+                    setCameraError(cameraErrorText(error));
+                }
             }
         };
 
         void startCamera();
+
         return () => {
             isActive = false;
             cameraStream?.getTracks().forEach((track) => track.stop());
-            if (cameraVideo) cameraVideo.srcObject = null;
+
+            if (cameraVideo) {
+                cameraVideo.srcObject = null;
+            }
         };
-    }, [isCameraOpen]);
+    }, [isCameraOpen, cameraFacing]);
 
     useEffect(() => {
         if (!isGalleryOpen && !activePhoto && !isCameraOpen) return;
@@ -383,11 +395,20 @@ function MemoriesPage() {
         setIsCameraOpen(true);
     };
 
+    const switchCamera = () => {
+        setIsCameraReady(false);
+        setCameraError('');
+
+        setCameraFacing((current) =>
+            current === 'user' ? 'environment' : 'user',
+        );
+    };
+
     const capturePhoto = async () => {
         const video = videoRef.current;
         if (!video || !isCameraReady) return;
         try {
-            const photo = await captureVideoFrame(video, frameChoice);
+            const photo = await captureVideoFrame(video);
             replaceDraft(photo);
             setIsCameraOpen(false);
         } catch (error) {
@@ -662,9 +683,12 @@ function MemoriesPage() {
                     >
                         <header className="memory-modal-header">
                             <div>
-                                <span className="memory-modal-eyebrow">LƯU LẠI KHOẢNH KHẮC</span>
+                                <span className="memory-modal-eyebrow">
+                                    LƯU LẠI KHOẢNH KHẮC
+                                </span>
                                 <h2 id="memory-camera-title">Chụp ảnh tốt nghiệp</h2>
                             </div>
+
                             <button
                                 className="memory-modal-close"
                                 type="button"
@@ -678,14 +702,13 @@ function MemoriesPage() {
                         <div className="memory-camera-preview">
                             {cameraSupported ? (
                                 <>
-                                    <video ref={videoRef} autoPlay muted playsInline />
-                                    {frameChoice === 'bku' && (
-                                        <img
-                                            className="memory-camera-frame"
-                                            src={PHOTO_FRAME_URL}
-                                            alt=""
-                                        />
-                                    )}
+                                    <video
+                                        ref={videoRef}
+                                        autoPlay
+                                        muted
+                                        playsInline
+                                    />
+
                                     {!isCameraReady && !cameraError && (
                                         <div className="memory-camera-loading" role="status">
                                             Đang kết nối camera...
@@ -694,43 +717,38 @@ function MemoriesPage() {
                                 </>
                             ) : (
                                 <p className="memory-camera-error">
-                                    Trình duyệt hoặc thiết bị chưa hỗ trợ camera. Bạn vẫn có thể tải ảnh từ thiết bị.
+                                    Trình duyệt hoặc thiết bị chưa hỗ trợ camera.
+                                    Bạn vẫn có thể tải ảnh từ thiết bị.
                                 </p>
                             )}
                         </div>
 
                         {cameraError && (
-                            <p className="memory-camera-error" role="alert">{cameraError}</p>
+                            <p className="memory-camera-error" role="alert">
+                                {cameraError}
+                            </p>
                         )}
 
-                        <fieldset className="memory-frame-picker">
-                            <legend>Chọn khung ảnh</legend>
+                        <div className="memory-camera-actions">
                             <button
+                                className="memory-switch-camera-button"
                                 type="button"
-                                className={frameChoice === 'bku' ? 'is-selected' : ''}
-                                aria-pressed={frameChoice === 'bku'}
-                                onClick={() => setFrameChoice('bku')}
+                                onClick={switchCamera}
+                                disabled={!cameraSupported}
                             >
-                                Bách Khoa
+                                <span aria-hidden="true">⟳</span>
+                                {cameraFacing === 'user' ? 'Camera sau' : 'Camera trước'}
                             </button>
-                            <button
-                                type="button"
-                                className={frameChoice === 'none' ? 'is-selected' : ''}
-                                aria-pressed={frameChoice === 'none'}
-                                onClick={() => setFrameChoice('none')}
-                            >
-                                Không khung
-                            </button>
-                        </fieldset>
 
-                        <button
-                            className="memory-capture-button"
-                            type="button"
-                            disabled={!isCameraReady}
-                            onClick={() => void capturePhoto()}
-                        >
-                            <span aria-hidden="true">●</span> Chụp ảnh
-                        </button>
+                            <button
+                                className="memory-capture-button"
+                                type="button"
+                                disabled={!isCameraReady}
+                                onClick={() => void capturePhoto()}
+                            >
+                                <span aria-hidden="true">●</span> Chụp ảnh
+                            </button>
+                        </div>
                     </section>
                 </div>
             )}

@@ -1116,3 +1116,36 @@
     transition-duration: .01ms !important;
   }
 }
+
+.memory-camera-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.memory-switch-camera-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 18px;
+  border: 1px solid #cbd6e8;
+  border-radius: 12px;
+  color: #294675;
+  background: #fff;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.memory-switch-camera-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.memory-camera-actions .memory-capture-button {
+  margin-top: 0;
+}
