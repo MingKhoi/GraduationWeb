@@ -367,7 +367,9 @@
 .lobby-reaction-toast {
   top: -8px;
   display: grid;
+  width: 50%;
   align-items: center;
+  justify-content: center;
   gap: 5px;
   border-color: #f1d8a6;
   background: #fffaf0;
