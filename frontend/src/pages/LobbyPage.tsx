@@ -171,6 +171,36 @@ function LobbyPage() {
                         },
                     ]);
 
+                    // const arrivalTimer = window.setTimeout(() => {
+                    //     timers.current = timers.current.filter(
+                    //         (timer) => timer !== arrivalTimer,
+                    //     );
+
+                    //     setFlyingReactions((current) =>
+                    //         current.filter((item) => item.id !== reaction.id),
+                    //     );
+
+                    //     setVisibleReactions((current) => [
+                    //         ...current.filter(
+                    //             (item) => item.toSeatId !== reaction.toSeatId,
+                    //         ),
+                    //         reaction,
+                    //     ]);
+
+                    //     const hideTimer = window.setTimeout(() => {
+                    //         timers.current = timers.current.filter(
+                    //             (timer) => timer !== hideTimer,
+                    //         );
+
+                    //         setVisibleReactions((current) =>
+                    //             current.filter(
+                    //                 (item) => item.id !== reaction.id,
+                    //             ),
+                    //         );
+                    //     }, 3000);
+
+                    //     timers.current.push(hideTimer);
+                    // }, 680);
                     const arrivalTimer = window.setTimeout(() => {
                         timers.current = timers.current.filter(
                             (timer) => timer !== arrivalTimer,
@@ -186,20 +216,6 @@ function LobbyPage() {
                             ),
                             reaction,
                         ]);
-
-                        const hideTimer = window.setTimeout(() => {
-                            timers.current = timers.current.filter(
-                                (timer) => timer !== hideTimer,
-                            );
-
-                            setVisibleReactions((current) =>
-                                current.filter(
-                                    (item) => item.id !== reaction.id,
-                                ),
-                            );
-                        }, 3000);
-
-                        timers.current.push(hideTimer);
                     }, 680);
 
                     timers.current.push(arrivalTimer);
