@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io, type Socket } from 'socket.io-client';
-import { API_URL } from '../services/api';
+// import { API_URL } from '../services/api';
+import { SOCKET_URL } from '../services/api';
 import { getProfileAvatarUrl } from '../services/profiles.service';
 import './LobbyPage.css';
 
@@ -41,10 +42,10 @@ const REACTION_OPTIONS: {
     label: string;
     image: string;
 }[] = [
-    { id: 'heart', label: 'Tim nè em iu', image: '/lobby/heart.png' },
-    { id: 'can', label: 'Có cái lon nè', image: '/lobby/can.png' },
-    { id: 'poop', label: 'Tặng bạn bọc cớt', image: '/lobby/poop.png' },
-];
+        { id: 'heart', label: 'Tim nè em iu', image: '/lobby/heart.png' },
+        { id: 'can', label: 'Có cái lon nè', image: '/lobby/can.png' },
+        { id: 'poop', label: 'Tặng bạn bọc cớt', image: '/lobby/poop.png' },
+    ];
 
 const EMPTY_SEATS: Seat[] = Array.from({ length: 16 }, (_, seatId) => ({
     seatId,
@@ -71,7 +72,8 @@ function LobbyPage() {
     const [now, setNow] = useState(0);
 
     useEffect(() => {
-        const socket = io(API_URL, { withCredentials: true });
+        // const socket = io(API_URL, { withCredentials: true });
+        const socket = io(SOCKET_URL, { withCredentials: true });
         socketRef.current = socket;
 
         socket.on('connect', () => {
@@ -94,7 +96,7 @@ function LobbyPage() {
             setMessages(state.messages);
             setTargetSeatId((current) =>
                 current !== null &&
-                state.seats.some((seat) => seat.seatId === current && seat.name !== null)
+                    state.seats.some((seat) => seat.seatId === current && seat.name !== null)
                     ? current
                     : null,
             );
