@@ -366,7 +366,7 @@
 
 .lobby-reaction-toast {
   top: -8px;
-  display: flex;
+  display: grid;
   align-items: center;
   gap: 5px;
   border-color: #f1d8a6;
@@ -375,8 +375,8 @@
 }
 
 .lobby-reaction-toast img {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   flex: 0 0 auto;
   object-fit: contain;
 }
