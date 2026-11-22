@@ -3615,8 +3615,8 @@
     flex-direction: column;
     align-items: center;
     gap: 12px;
-    box-sizing: border-box;
-    overflow-y: auto;
+    /* box-sizing: border-box; */
+    /* overflow-y: auto; */
     overscroll-behavior: contain;
     padding: max(12px, env(safe-area-inset-top)) 14px calc(24px + env(safe-area-inset-bottom));
   }
