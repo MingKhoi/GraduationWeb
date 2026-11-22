@@ -1,3 +1,4 @@
+
 import {
     CanActivate,
     ExecutionContext,
@@ -11,6 +12,7 @@ import { PrismaService } from '../../prisma/prisma.service.js';
 
 interface AuthenticatedRequest extends Request {
     guestId?: string;
+    guestSessionId?: string;
 }
 
 @Injectable()
@@ -37,6 +39,7 @@ export class GuestAuthGuard implements CanActivate {
                 sessionTokenHash: this.hashToken(sessionToken),
             },
             select: {
+                id: true,
                 guestId: true,
                 expiresAt: true,
             },
@@ -57,6 +60,7 @@ export class GuestAuthGuard implements CanActivate {
         }
 
         request.guestId = session.guestId;
+        request.guestSessionId = session.id;
 
         return true;
     }

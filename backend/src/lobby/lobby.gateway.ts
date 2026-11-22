@@ -1,4 +1,5 @@
 import { Logger } from '@nestjs/common';
+import { AuthService } from '../auth/auth.service.js';
 import {
   ConnectedSocket,
   MessageBody,
@@ -8,7 +9,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { createHash, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import type { Server, Socket } from 'socket.io';
 import { PrismaService } from '../prisma/prisma.service.js';
 
@@ -60,25 +61,44 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly participants = new Map<string, Participant>();
   private readonly messages: LobbyMessage[] = [];
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly authService: AuthService,
+  ) { }
+
 
   async handleConnection(socket: Socket): Promise<void> {
-    const token = this.getSessionToken(socket);
+    const ticket = socket.handshake.auth?.ticket;
 
-    if (!token) {
-      socket.emit('lobby:error', { message: 'Vui lòng đăng nhập để vào sảnh.' });
+    if (typeof ticket !== 'string') {
+      socket.emit('lobby:error', {
+        message: 'Vui lòng đăng nhập để vào sảnh.',
+      });
+      socket.disconnect(true);
+      return;
+    }
+
+    const ticketData = this.authService.verifyLobbyTicket(ticket);
+
+    if (!ticketData) {
+      socket.emit('lobby:error', {
+        message: 'Vé đăng nhập không hợp lệ hoặc đã hết hạn.',
+      });
       socket.disconnect(true);
       return;
     }
 
     try {
-      const session = await this.prisma.guestSession.findUnique({
+      const session = await this.prisma.guestSession.findFirst({
         where: {
-          sessionTokenHash: this.hashToken(token),
+          id: ticketData.sessionId,
+          guestId: ticketData.guestId,
+          expiresAt: {
+            gt: new Date(),
+          },
         },
         select: {
           guestId: true,
-          expiresAt: true,
           guest: {
             select: {
               fullName: true,
@@ -97,11 +117,14 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return;
       }
 
-      if (!session || session.expiresAt.getTime() < Date.now()) {
-        socket.emit('lobby:error', { message: 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn.' });
+      if (!session) {
+        socket.emit('lobby:error', {
+          message: 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn.',
+        });
         socket.disconnect(true);
         return;
       }
+
 
       if (
         [...this.participants.values()].some(
@@ -163,9 +186,9 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const participant = this.participants.get(socket.id);
     const text =
       typeof payload === 'object' &&
-      payload !== null &&
-      'text' in payload &&
-      typeof payload.text === 'string'
+        payload !== null &&
+        'text' in payload &&
+        typeof payload.text === 'string'
         ? payload.text.trim()
         : '';
 
@@ -207,17 +230,17 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const participant = this.participants.get(socket.id);
     const reactionId =
       typeof payload === 'object' &&
-      payload !== null &&
-      'reactionId' in payload &&
-      typeof payload.reactionId === 'string' &&
-      Object.hasOwn(REACTIONS, payload.reactionId)
+        payload !== null &&
+        'reactionId' in payload &&
+        typeof payload.reactionId === 'string' &&
+        Object.hasOwn(REACTIONS, payload.reactionId)
         ? (payload.reactionId as ReactionId)
         : null;
     const targetSeatId =
       typeof payload === 'object' &&
-      payload !== null &&
-      'targetSeatId' in payload &&
-      typeof payload.targetSeatId === 'number'
+        payload !== null &&
+        'targetSeatId' in payload &&
+        typeof payload.targetSeatId === 'number'
         ? payload.targetSeatId
         : -1;
     const target = [...this.participants.values()].find(
@@ -258,10 +281,10 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       return participant
         ? {
-            seatId,
-            name: participant.name,
-            avatarUrl: participant.avatarUrl,
-          }
+          seatId,
+          name: participant.name,
+          avatarUrl: participant.avatarUrl,
+        }
         : { seatId, name: null, avatarUrl: null };
     });
 
@@ -271,21 +294,21 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect {
     };
   }
 
-  private getSessionToken(socket: Socket): string | null {
-    const cookieHeader = socket.handshake.headers.cookie;
-    if (!cookieHeader) {
-      return null;
-    }
+  // private getSessionToken(socket: Socket): string | null {
+  //   const cookieHeader = socket.handshake.headers.cookie;
+  //   if (!cookieHeader) {
+  //     return null;
+  //   }
 
-    const cookie = cookieHeader
-      .split(';')
-      .map((part) => part.trim())
-      .find((part) => part.startsWith('gw_session='));
+  //   const cookie = cookieHeader
+  //     .split(';')
+  //     .map((part) => part.trim())
+  //     .find((part) => part.startsWith('gw_session='));
 
-    return cookie?.slice('gw_session='.length) || null;
-  }
+  //   return cookie?.slice('gw_session='.length) || null;
+  // }
 
-  private hashToken(token: string): string {
-    return createHash('sha256').update(token).digest('hex');
-  }
+  // private hashToken(token: string): string {
+  //   return createHash('sha256').update(token).digest('hex');
+  // }
 }

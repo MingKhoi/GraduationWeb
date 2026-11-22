@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 
 import { useNavigate } from 'react-router-dom';
 import { io, type Socket } from 'socket.io-client';
 // import { API_URL } from '../services/api';
-import { SOCKET_URL } from '../services/api';
+import { apiRequest, SOCKET_URL } from '../services/api';
 import { getProfileAvatarUrl } from '../services/profiles.service';
 import './LobbyPage.css';
 
@@ -71,87 +71,169 @@ function LobbyPage() {
     const [visibleReactions, setVisibleReactions] = useState<LobbyReaction[]>([]);
     const [now, setNow] = useState(0);
 
+
     useEffect(() => {
-        // const socket = io(API_URL, { withCredentials: true });
-        const socket = io(SOCKET_URL, { withCredentials: true });
-        socketRef.current = socket;
-
-        socket.on('connect', () => {
-            setIsConnected(true);
-            setErrorMessage('');
-        });
-        socket.on('disconnect', () => setIsConnected(false));
-        socket.on('connect_error', () => {
-            setIsConnected(false);
-            setErrorMessage('Không thể kết nối sảnh. Vui lòng kiểm tra mạng và thử lại.');
-        });
-        socket.on('lobby:error', (payload: { message?: string }) => {
-            setErrorMessage(payload.message || 'Đã xảy ra lỗi trong sảnh.');
-        });
-        socket.on('lobby:welcome', (payload: { seatId: number }) => {
-            setMySeatId(payload.seatId);
-        });
-        socket.on('lobby:state', (state: { seats: Seat[]; messages: LobbyMessage[] }) => {
-            setSeats(state.seats);
-            setMessages(state.messages);
-            setTargetSeatId((current) =>
-                current !== null &&
-                    state.seats.some((seat) => seat.seatId === current && seat.name !== null)
-                    ? current
-                    : null,
-            );
-        });
-        socket.on('lobby:message', (message: LobbyMessage) => {
-            setMessages((current) => [...current.slice(-49), message]);
-        });
-        socket.on('lobby:reaction', (reaction: LobbyReaction) => {
-            const from = seatElements.current.get(reaction.fromSeatId)?.getBoundingClientRect();
-            const to = seatElements.current.get(reaction.toSeatId)?.getBoundingClientRect();
-
-            if (!from || !to) {
-                return;
-            }
-
-            setFlyingReactions((current) => [
-                ...current,
-                {
-                    ...reaction,
-                    x: from.left + from.width / 2,
-                    y: from.top + from.height / 2,
-                    dx: to.left - from.left,
-                    dy: to.top - from.top,
-                },
-            ]);
-
-            const arrivalTimer = window.setTimeout(() => {
-                timers.current = timers.current.filter((timer) => timer !== arrivalTimer);
-                setFlyingReactions((current) =>
-                    current.filter((item) => item.id !== reaction.id),
-                );
-                setVisibleReactions((current) => [
-                    ...current.filter((item) => item.toSeatId !== reaction.toSeatId),
-                    reaction,
-                ]);
-                const hideTimer = window.setTimeout(() => {
-                    timers.current = timers.current.filter((timer) => timer !== hideTimer);
-                    setVisibleReactions((current) =>
-                        current.filter((item) => item.id !== reaction.id),
-                    );
-                }, 3000);
-                timers.current.push(hideTimer);
-            }, 680);
-            timers.current.push(arrivalTimer);
-        });
+        let cancelled = false;
 
         const clock = window.setInterval(() => setNow(Date.now()), 1000);
+
+        const connectLobby = async () => {
+            try {
+                // Bước 1: Lấy ticket thông qua REST API.
+                const { ticket } = await apiRequest<{ ticket: string }>(
+                    '/auth/lobby-ticket',
+                    { method: 'POST' },
+                );
+
+                // Component đã unmount thì không kết nối nữa.
+                if (cancelled) return;
+
+                // Bước 2: Kết nối Socket.IO bằng ticket.
+                const socket = io(SOCKET_URL, {
+                    withCredentials: true,
+                    auth: { ticket },
+                    autoConnect: false,
+                });
+
+                socketRef.current = socket;
+
+                socket.on('connect', () => {
+                    setIsConnected(true);
+                    setErrorMessage('');
+                });
+
+                socket.on('disconnect', () => setIsConnected(false));
+
+                socket.on('connect_error', () => {
+                    setIsConnected(false);
+                    setErrorMessage(
+                        'Không thể kết nối sảnh. Vui lòng kiểm tra mạng và thử lại.',
+                    );
+                });
+
+                socket.on('lobby:error', (payload: { message?: string }) => {
+                    setErrorMessage(
+                        payload.message || 'Đã xảy ra lỗi trong sảnh.',
+                    );
+                });
+
+                socket.on('lobby:welcome', (payload: { seatId: number }) => {
+                    setMySeatId(payload.seatId);
+                });
+
+                socket.on(
+                    'lobby:state',
+                    (state: { seats: Seat[]; messages: LobbyMessage[] }) => {
+                        setSeats(state.seats);
+                        setMessages(state.messages);
+
+                        setTargetSeatId((current) =>
+                            current !== null &&
+                                state.seats.some(
+                                    (seat) =>
+                                        seat.seatId === current &&
+                                        seat.name !== null,
+                                )
+                                ? current
+                                : null,
+                        );
+                    },
+                );
+
+                socket.on('lobby:message', (message: LobbyMessage) => {
+                    setMessages((current) => [
+                        ...current.slice(-49),
+                        message,
+                    ]);
+                });
+
+                socket.on('lobby:reaction', (reaction: LobbyReaction) => {
+                    const from = seatElements.current
+                        .get(reaction.fromSeatId)
+                        ?.getBoundingClientRect();
+
+                    const to = seatElements.current
+                        .get(reaction.toSeatId)
+                        ?.getBoundingClientRect();
+
+                    if (!from || !to) {
+                        return;
+                    }
+
+                    setFlyingReactions((current) => [
+                        ...current,
+                        {
+                            ...reaction,
+                            x: from.left + from.width / 2,
+                            y: from.top + from.height / 2,
+                            dx: to.left - from.left,
+                            dy: to.top - from.top,
+                        },
+                    ]);
+
+                    const arrivalTimer = window.setTimeout(() => {
+                        timers.current = timers.current.filter(
+                            (timer) => timer !== arrivalTimer,
+                        );
+
+                        setFlyingReactions((current) =>
+                            current.filter((item) => item.id !== reaction.id),
+                        );
+
+                        setVisibleReactions((current) => [
+                            ...current.filter(
+                                (item) => item.toSeatId !== reaction.toSeatId,
+                            ),
+                            reaction,
+                        ]);
+
+                        const hideTimer = window.setTimeout(() => {
+                            timers.current = timers.current.filter(
+                                (timer) => timer !== hideTimer,
+                            );
+
+                            setVisibleReactions((current) =>
+                                current.filter(
+                                    (item) => item.id !== reaction.id,
+                                ),
+                            );
+                        }, 3000);
+
+                        timers.current.push(hideTimer);
+                    }, 680);
+
+                    timers.current.push(arrivalTimer);
+                });
+
+                // Chỉ kết nối sau khi đã đăng ký các sự kiện.
+                socket.connect();
+            } catch (error) {
+                if (cancelled) return;
+
+                setIsConnected(false);
+                setErrorMessage(
+                    error instanceof Error
+                        ? error.message
+                        : 'Không thể xác thực để vào sảnh.',
+                );
+            }
+        };
+
+        void connectLobby();
+
         return () => {
-            socket.disconnect();
+            cancelled = true;
+
+            socketRef.current?.disconnect();
             socketRef.current = null;
+
             window.clearInterval(clock);
+
             timers.current.forEach(window.clearTimeout);
             timers.current = [];
         };
     }, []);
+
 
     useEffect(() => {
         if (!isChatHistoryOpen) {

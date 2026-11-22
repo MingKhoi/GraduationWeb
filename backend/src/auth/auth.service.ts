@@ -4,7 +4,12 @@ import {
     UnauthorizedException,
 } from '@nestjs/common';
 
-import { randomBytes, createHash } from 'node:crypto';
+import {
+    randomBytes,
+    createHash,
+    createHmac,
+    timingSafeEqual,
+} from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
@@ -14,6 +19,89 @@ export class AuthService {
     private hashToken(token: string): string {
         return createHash('sha256').update(token).digest('hex');
     }
+
+    private getLobbyTicketSecret(): string {
+        const secret = process.env.LOBBY_TICKET_SECRET;
+
+        if (!secret || secret.length < 32) {
+            throw new Error('LOBBY_TICKET_SECRET is not configured correctly');
+        }
+
+        return secret;
+    }
+
+    createLobbyTicket(guestId: string, sessionId: string): string {
+        const payload = Buffer.from(
+            JSON.stringify({
+                guestId,
+                sessionId,
+                exp: Date.now() + 60_000,
+            }),
+        ).toString('base64url');
+
+        const signature = createHmac(
+            'sha256',
+            this.getLobbyTicketSecret(),
+        )
+            .update(payload)
+            .digest('base64url');
+
+        return `${payload}.${signature}`;
+    }
+
+    verifyLobbyTicket(
+        ticket: string,
+    ): { guestId: string; sessionId: string } | null {
+        try {
+            const parts = ticket.split('.');
+
+            if (parts.length !== 2) {
+                return null;
+            }
+
+            const [payload, signature] = parts;
+
+            const expectedSignature = createHmac(
+                'sha256',
+                this.getLobbyTicketSecret(),
+            )
+                .update(payload)
+                .digest();
+
+            const actualSignature = Buffer.from(
+                signature,
+                'base64url',
+            );
+
+            if (
+                actualSignature.length !== expectedSignature.length ||
+                !timingSafeEqual(actualSignature, expectedSignature)
+            ) {
+                return null;
+            }
+
+            const data = JSON.parse(
+                Buffer.from(payload, 'base64url').toString('utf8'),
+            );
+
+            if (
+                typeof data.guestId !== 'string' ||
+                typeof data.sessionId !== 'string' ||
+                typeof data.exp !== 'number' ||
+                data.exp <= Date.now()
+            ) {
+                return null;
+            }
+
+            return {
+                guestId: data.guestId,
+                sessionId: data.sessionId,
+            };
+        } catch {
+            return null;
+        }
+    }
+
 
     // Đổi invitation token thành session
     async exchangeInvitation(token: string) {

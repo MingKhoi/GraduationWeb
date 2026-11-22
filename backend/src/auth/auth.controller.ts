@@ -29,6 +29,7 @@ const cookieOptions = {
 
 interface AuthenticatedRequest extends Request {
     guestId?: string;
+    guestSessionId?: string;
 }
 
 @Controller('auth')
@@ -62,7 +63,18 @@ export class AuthController {
     @Get('me')
     @UseGuards(GuestAuthGuard)
     async getMe(@Req() request: AuthenticatedRequest) {
+
         return this.authService.getMe(request.guestId!);
+    }
+    @Post('lobby-ticket')
+    @UseGuards(GuestAuthGuard)
+    createLobbyTicket(@Req() request: AuthenticatedRequest) {
+        return {
+            ticket: this.authService.createLobbyTicket(
+                request.guestId!,
+                request.guestSessionId!,
+            ),
+        };
     }
 
     // Đăng xuất
